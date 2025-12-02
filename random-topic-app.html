@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ランダムお題生成アプリ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .category-selector {
+            margin-bottom: 30px;
+        }
+
+        .category-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .category-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .category-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .category-btn.active {
+            background: linear-gradient(45deg, #764ba2, #667eea);
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+        }
+
+        .topic-display {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 40px;
+            margin: 30px 0;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .topic-text {
+            font-size: 1.8em;
+            color: #333;
+            font-weight: bold;
+            line-height: 1.4;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .generate-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+        }
+
+        .generate-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .stats {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+            margin: 10px;
+        }
+
+        .stat-number {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .history {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .history-item {
+            background: rgba(255, 255, 255, 0.5);
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .topic-text {
+                font-size: 1.4em;
+            }
+            
+            .category-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .category-btn {
+                width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤝 ペア交流お題生成器</h1>
+        
+        <div class="category-selector">
+            <div class="category-buttons">
+                <button class="category-btn active" data-category="all">すべて</button>
+                <button class="category-btn" data-category="work">仕事・キャリア・価値観</button>
+                <button class="category-btn" data-category="private">プライベート・趣味・日常</button>
+            </div>
+        </div>
+
+        <div class="topic-display">
+            <div class="topic-text">お題生成ボタンを押して、ペア交流を始めましょう！</div>
+        </div>
+
+        <button class="generate-btn" onclick="generateTopic()">🎲 新しいお題を生成</button>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number" id="totalCount">0</div>
+                <div class="stat-label">生成回数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="currentCategory">すべて</div>
+                <div class="stat-label">現在のカテゴリ</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="totalTopics">0</div>
+                <div class="stat-label">お題総数</div>
+            </div>
+        </div>
+
+        <div class="history">
+            <h3>最近のお題履歴</h3>
+            <div id="historyList"></div>
+        </div>
+    </div>
+
+    <script>
+        const topics = {
+            work: [
+                "今の仕事で一番やりがいを感じる瞬間は？",
+                "5年後の理想の自分はどんな姿？",
+                "今まで最も成長を感じた経験について",
+                "挑戦してみたい新しいスキルや分野",
+                "仕事で大切にしている価値観やモットー",
+                "最近の業務で印象に残った出来事",
+                "チームワークで重要だと思うこと",
+                "失敗から学んだ大切な教訓",
+                "理想のワークライフバランスとは",
+                "ストレス発散やリフレッシュの方法",
+                "仕事のモチベーションを保つ秘訣",
+                "尊敬している上司や同僚の特徴",
+                "効率化のために工夫していること",
+                "理想の会社・職場環境とは",
+                "将来のキャリアで実現したい夢",
+                "困難な状況を乗り越えた経験",
+                "人生で大切にしたい3つの価値観",
+                "働く上で絶対に譲れないこと",
+                "未来の働き方はどう変化すると思う？",
+                "もし起業するなら何をしたい？"
+            ],
+            private: [
+                "休日の理想的な過ごし方",
+                "最近ハマっていることや新しく始めたこと",
+                "好きな映画・本・音楽のジャンル",
+                "行ってみたい旅行先とその理由",
+                "好きな食べ物・お店・料理",
+                "意外な特技や隠れた趣味",
+                "子供の頃の夢と今の自分",
+                "学生時代の思い出や部活動",
+                "最近感動したり笑ったりした出来事",
+                "好きな季節とその理由",
+                "ペットを飼うなら何を飼いたい？",
+                "無人島に3つだけ持っていけるなら何？",
+                "もし1億円あったら何をする？",
+                "理想の住む場所（都市・田舎・海外など）",
+                "好きなスポーツ（観戦・プレイ問わず）",
+                "朝型？夜型？理想的な一日の過ごし方",
+                "最近買ってよかったものは？",
+                "友人との思い出深いエピソード",
+                "挑戦してみたいことや行きたい場所",
+                "人生で一番影響を受けた人・出来事"
+            ]
+        };
+
+        let currentCategory = 'all';
+        let generateCount = 0;
+        let history = [];
+
+        function getAllTopics() {
+            const allTopics = [];
+            for (const category in topics) {
+                allTopics.push(...topics[category]);
+            }
+            return allTopics;
+        }
+
+        function updateStats() {
+            document.getElementById('totalCount').textContent = generateCount;
+            document.getElementById('currentCategory').textContent = getCategoryName(currentCategory);
+            
+            const totalTopics = currentCategory === 'all' ? getAllTopics().length : topics[currentCategory].length;
+            document.getElementById('totalTopics').textContent = totalTopics;
+        }
+
+        function getCategoryName(category) {
+            const categoryNames = {
+                'all': 'すべて',
+                'work': '仕事・キャリア・価値観',
+                'private': 'プライベート・趣味・日常'
+            };
+            return categoryNames[category] || category;
+        }
+
+        function updateHistory(topic) {
+            history.unshift(topic);
+            if (history.length > 5) {
+                history.pop();
+            }
+            
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = '';
+            
+            history.forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.textContent = item;
+                historyList.appendChild(historyItem);
+            });
+        }
+
+        function generateTopic() {
+            let topicList;
+            
+            if (currentCategory === 'all') {
+                topicList = getAllTopics();
+            } else {
+                topicList = topics[currentCategory];
+            }
+            
+            const randomIndex = Math.floor(Math.random() * topicList.length);
+            const selectedTopic = topicList[randomIndex];
+            
+            document.querySelector('.topic-text').textContent = selectedTopic;
+            
+            generateCount++;
+            updateStats();
+            updateHistory(selectedTopic);
+            
+            // アニメーション効果
+            const topicDisplay = document.querySelector('.topic-display');
+            topicDisplay.style.transform = 'scale(1.05)';
+            setTimeout(() => {
+                topicDisplay.style.transform = 'scale(1)';
+            }, 200);
+        }
+
+        // カテゴリボタンのイベントリスナー
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentCategory = this.dataset.category;
+                updateStats();
+            });
+        });
+
+        // 初期化
+        updateStats();
+        
+        // キーボードショートカット
+        document.addEventListener('keydown', function(e) {
+            if (e.code === 'Space' || e.key === 'Enter') {
+                e.preventDefault();
+                generateTopic();
+            }
+        });
+    </script>
+</body>
+</html>
